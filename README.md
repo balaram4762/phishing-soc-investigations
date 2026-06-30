@@ -1,55 +1,27 @@
-# 🛡️ Phishing Email Investigation — SOC Analyst Case Files
+# Phishing Investigation Project
 
-A portfolio project demonstrating real-world SOC analyst workflows: collecting publicly-reported phishing samples, analyzing them with free industry tools, extracting IOCs, and writing professional investigation tickets.
+This is a small project where I picked real phishing URLs from PhishTank (a site where people report phishing links) and checked them myself using VirusTotal to see if they were actually malicious.
 
-> **All samples used are already-reported public threat intelligence from PhishTank. No live malware is downloaded or executed.**
+I did 5 cases total. For each one I found the phishing URL, checked it on VirusTotal to see how many antivirus companies flagged it, found the server IP hosting it, and wrote up what I found.
 
----
+## Tools I used
+- PhishTank - to find real reported phishing URLs
+- VirusTotal - to check if URLs/IPs are flagged as malicious by security vendors
 
-## 📁 Project Structure
+## Cases
 
----
+| Case | Brand they faked | Detection score | Server IP |
+|---|---|---|---|
+| PHI-001 | Sahibinden | 4/92 | 104.21.20.125 |
+| PHI-002 | Carrefour | 1/92 | 13.32.205.46 |
+| PHI-003 | Fake medical site | 16/92 | 216.55.149.9 |
+| PHI-004 | Apple iCloud | 3/90 | 69.16.230.228 |
+| PHI-005 | Smart Fit | 5/92 | 172.67.169.143 |
 
-## 🔧 Tools Used
+## What I learned doing this
+- new phishing domains often show 0 detections at first because nobody's reported them yet to antivirus companies - doesn't mean they're safe
+- attackers host phishing sites on Cloudflare and AWS a lot because it makes them harder to block and look more trustworthy
+- domain registration date matters - if a domain was made the same day as the attack, that's a huge red flag
+- how to actually use VirusTotal beyond just searching - checking the Details tab for IP info, Relations tab for connected infrastructure
 
-| Tool | Purpose |
-|------|---------|
-| [PhishTank](https://phishtank.org) | Source of real, currently-reported phishing URLs |
-| [VirusTotal](https://virustotal.com) | Scan URLs and IPs against 90+ security vendors |
-
----
-
-## 📋 Case Summary
-
-| Case ID | Brand Impersonated | Attack Type | Detection Score | Server IP |
-|---------|---------------------|-------------|------------------|-----------|
-| PHI-001 | Sahibinden | Credential Phishing | 4/92 | 104.21.20.125 |
-| PHI-002 | Carrefour | Credential Phishing | 1/92 | 13.32.205.46 |
-| PHI-003 | United Medical Solutions | Credential Phishing | 16/92 | 216.55.149.9 |
-| PHI-004 | Apple iCloud | Credential Phishing | 3/90 | 69.16.230.228 |
-| PHI-005 | Smart Fit | Credential Phishing | 5/92 | 172.67.169.143 |
-
----
-
-## 🔍 Analysis Workflow (per case)
-
-1. **Sample collection** — sourced live, verified phishing URLs from PhishTank
-2. **URL reputation check** — submitted each URL to VirusTotal, recorded vendor detection count
-3. **IP investigation** — extracted the hosting server IP from VirusTotal's Details tab, checked IP reputation and hosting provider
-4. **IOC extraction** — recorded domain, URL, and IP for each case
-5. **Ticket writing** — documented findings, severity, and remediation steps in a structured Markdown ticket per case
-
----
-
-## 📖 What I Learned
-
-- How to source real-time phishing threat intelligence from PhishTank
-- How to use VirusTotal to check URL and IP reputation across 90+ security vendors
-- Why newly-registered phishing domains often show 0 detections initially, and why that doesn't mean they're safe
-- How attackers use trusted cloud providers (Cloudflare, AWS) to host phishing infrastructure and avoid suspicion
-- How to identify brand impersonation patterns (typosquatting, lookalike domains)
-- How to write structured SOC investigation tickets with IOCs and remediation recommendations
-
----
-
-*Built as a cybersecurity portfolio project. All threat data sourced from public, community-reported repositories on PhishTank.*
+See the /cases folder for the full writeup on each one.
