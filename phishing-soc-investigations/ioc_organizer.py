@@ -2,6 +2,10 @@
 """
 SOC Analyst IOC Organizer
 Phishing Email Investigation Project
+
+Used this mainly as a working example for PHI-001. The rest of the
+cases (PHI-002 to PHI-005) I did manually by checking each URL on
+VirusTotal directly and writing up the findings in the case files.
 """
 
 import json
@@ -35,40 +39,39 @@ def new_case(case_id, subject, sender, date_reported):
 
 
 # ─────────────────────────────────────────────
-#  Five phishing case templates — fill these
-#  in as you analyze each sample
+#  Five phishing cases investigated
 # ─────────────────────────────────────────────
 
 CASES = [
     new_case(
         case_id="PHI-001",
-        subject="Your PayPal account has been limited",
-        sender="service@paypa1-support.com",
-        date_reported="2024-01-10"
+        subject="Fake Sahibinden shopping site",
+        sender="sahibinden.elektronik-magaza-sepetim.com",
+        date_reported="2026-06-29"
     ),
     new_case(
         case_id="PHI-002",
-        subject="Microsoft: Unusual sign-in activity detected",
-        sender="security@microsoftonline-alert.net",
-        date_reported="2024-01-12"
+        subject="Fake Carrefour promo page",
+        sender="carrefour.negocie-aqui.com",
+        date_reported="2026-06-29"
     ),
     new_case(
         case_id="PHI-003",
-        subject="DHL: Your package is on hold — action required",
-        sender="noreply@dhl-delivery-update.com",
-        date_reported="2024-01-15"
+        subject="Fake medical solutions site",
+        sender="unitedmedicalsolutions.org",
+        date_reported="2026-06-29"
     ),
     new_case(
         case_id="PHI-004",
-        subject="IRS: Tax refund notification",
-        sender="refund@irs-gov-notice.org",
-        date_reported="2024-01-18"
+        subject="Fake iCloud unlock bypass service",
+        sender="icloud-unlock-bypass.com",
+        date_reported="2026-06-29"
     ),
     new_case(
         case_id="PHI-005",
-        subject="Invoice #8821 — payment overdue",
-        sender="accounts@invoice-billing-portal.xyz",
-        date_reported="2024-01-20"
+        subject="Fake Smart Fit ad page",
+        sender="smartfitbr.com",
+        date_reported="2026-06-29"
     ),
 ]
 
@@ -109,13 +112,16 @@ def export_csv(cases, out_path="iocs/ioc_flat_list.csv"):
                 rows.append({
                     "case_id": c["case_id"],
                     "attack_type": c["attack_type"],
-                    "ioc_type": ioc_type.rstrip("s"),   # ips → ip, etc.
+                    "ioc_type": ioc_type.rstrip("s"),
                     "ioc_value": v,
                     "severity": c["severity"],
                     "date_reported": c["date_reported"]
                 })
+    if not rows:
+        print("[!] No IOC rows to export yet")
+        return
     with open(out_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=rows[0].keys() if rows else [])
+        writer = csv.DictWriter(f, fieldnames=rows[0].keys())
         writer.writeheader()
         writer.writerows(rows)
     print(f"[✓] CSV exported  → {out_path}  ({len(rows)} IOC rows)")
@@ -124,20 +130,20 @@ def export_csv(cases, out_path="iocs/ioc_flat_list.csv"):
 def export_markdown_summary(cases, out_path="reports/IOC_MASTER_LIST.md"):
     Path(out_path).parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        "# Phishing Investigation — Master IOC List",
-        f"_Generated: {datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M UTC')}_\n",
+        "# IOC List - all cases combined",
+        f"Generated: {datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}\n",
         "---\n"
     ]
     for c in cases:
         lines.append(f"## {c['case_id']} — {c['subject']}")
-        lines.append(f"- **Sender:** `{c['sender']}`")
-        lines.append(f"- **Attack type:** {c['attack_type'] or 'TBD'}")
-        lines.append(f"- **Severity:** {c['severity'] or 'TBD'}")
-        lines.append(f"- **Recommendation:** {c['recommendation'] or 'TBD'}\n")
+        lines.append(f"- Domain/Sender: `{c['sender']}`")
+        lines.append(f"- Attack type: {c['attack_type'] or 'TBD'}")
+        lines.append(f"- Severity: {c['severity'] or 'TBD'}")
+        lines.append(f"- Recommendation: {c['recommendation'] or 'TBD'}\n")
         lines.append("### IOCs")
         for ioc_type, values in c["iocs"].items():
             if values:
-                lines.append(f"\n**{ioc_type.upper()}**")
+                lines.append(f"\n**{ioc_type}**")
                 for v in values:
                     lines.append(f"- `{v}`")
         lines.append("\n---\n")
@@ -153,45 +159,43 @@ def export_markdown_summary(cases, out_path="reports/IOC_MASTER_LIST.md"):
 TICKET_TEMPLATE = """\
 # SOC Investigation Ticket — {case_id}
 
-| Field            | Value                        |
-|------------------|------------------------------|
-| Case ID          | {case_id}                    |
-| Date Reported    | {date_reported}              |
-| Severity         | {severity}                   |
-| Attack Type      | {attack_type}                |
+Case ID: {case_id}
+Date: {date_reported}
+Severity: {severity}
+Attack Type: {attack_type}
 
-## Email Details
-- **Subject:** {subject}
-- **Sender:** `{sender}`
+## Email/site details
+Subject: {subject}
+Sender/domain: {sender}
 
-## Summary of Findings
+## Findings
 {findings}
 
-## Tools Used
+## Tools used
 {tools_list}
 
-## Indicators of Compromise (IOCs)
+## IOCs
 
-### IP Addresses
+IPs:
 {ioc_ips}
 
-### Domains
+Domains:
 {ioc_domains}
 
-### URLs
+URLs:
 {ioc_urls}
 
-### Sender Email Addresses
+Email addresses:
 {ioc_emails}
 
-### File Hashes (MD5 / SHA256)
+File hashes:
 {ioc_hashes}
 
 ## Recommendation
 {recommendation}
 
 ---
-_Analyst: [Your Name] | {date_reported}_
+Analyst: [Your Name] | {date_reported}
 """
 
 def generate_ticket(case, out_dir="cases"):
@@ -207,14 +211,14 @@ def generate_ticket(case, out_dir="cases"):
         attack_type=case["attack_type"] or "PENDING",
         subject=case["subject"],
         sender=case["sender"],
-        findings=case["findings"] or "_Findings pending analysis._",
+        findings=case["findings"] or "Findings pending.",
         tools_list="\n".join(f"- {t}" for t in case["tools_used"]) or "- TBD",
         ioc_ips=fmt_list(case["iocs"]["ips"]),
         ioc_domains=fmt_list(case["iocs"]["domains"]),
         ioc_urls=fmt_list(case["iocs"]["urls"]),
         ioc_emails=fmt_list(case["iocs"]["email_addresses"]),
         ioc_hashes=fmt_list(case["iocs"]["file_hashes"]),
-        recommendation=case["recommendation"] or "_Pending._"
+        recommendation=case["recommendation"] or "Pending."
     )
 
     path = f"{out_dir}/{case['case_id']}.md"
@@ -224,40 +228,36 @@ def generate_ticket(case, out_dir="cases"):
 
 
 # ─────────────────────────────────────────────
-#  Main — run to generate all scaffolding
+#  Main — example run using PHI-001 real data
 # ─────────────────────────────────────────────
 
 if __name__ == "__main__":
     print("\n=== SOC Phishing Investigation — IOC Organizer ===\n")
 
-    # Example: populate PHI-001 with data you find during analysis
     c1 = CASES[0]
     c1["attack_type"] = "credential_phishing"
     c1["severity"] = "HIGH"
-    c1["tools_used"] = ["MXToolbox", "URLScan.io", "VirusTotal"]
+    c1["tools_used"] = ["VirusTotal", "PhishTank"]
     c1["findings"] = (
-        "Sender domain paypa1-support.com (note digit '1' instead of letter 'l') "
-        "registered 3 days before attack. SPF and DKIM both fail. "
-        "Embedded link redirects to credential harvesting page mimicking PayPal login. "
-        "VirusTotal: 18/90 vendors flag the domain as phishing."
+        "Fake Sahibinden site. Domain registered same day as the attack. "
+        "Flagged by 4/92 vendors on VirusTotal (Emsisoft, Fortinet, Netcraft, SOCRadar). "
+        "Hosted behind Cloudflare to hide the real server location."
     )
     c1["recommendation"] = (
-        "Block domain paypa1-support.com at email gateway and DNS firewall. "
-        "Report URL to PhishTank. Alert users who clicked."
+        "Block domain at firewall. Report URL to PhishTank. "
+        "Alert any users who clicked the link."
     )
-    add_ioc(c1, "domains",         "paypa1-support.com")
-    add_ioc(c1, "urls",            "http://paypa1-support.com/verify/login.php")
-    add_ioc(c1, "ips",             "185.220.101.47")
-    add_ioc(c1, "email_addresses", "service@paypa1-support.com")
+    add_ioc(c1, "domains", "sahibinden.elektronik-magaza-sepetim.com")
+    add_ioc(c1, "urls", "http://sahibinden.elektronik-magaza-sepetim.com/adres")
+    add_ioc(c1, "ips", "104.21.20.125")
 
-    # Generate skeleton tickets for all 5 cases
     for case in CASES:
         generate_ticket(case)
 
-    # Export IOC lists
     export_json(CASES)
     export_csv(CASES)
     export_markdown_summary(CASES)
 
-    print("\n[✓] All files generated. Fill in cases PHI-002 through PHI-005")
-    print("    as you complete each analysis.\n")
+    print("\n[✓] Done. PHI-001 has real findings filled in as an example.")
+    print("    PHI-002 through PHI-005 were investigated and written up")
+    print("    manually in their own case files.\n")
